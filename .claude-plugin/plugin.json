@@ -1,0 +1,38 @@
+{
+  "name": "gpt-advisor",
+  "version": "0.2.0",
+  "description": "An advisor tool backed by OpenAI GPT through the Codex CLI.",
+  "author": {
+    "name": "souf92i"
+  },
+  "license": "MIT",
+  "userConfig": {
+    "enabled": {
+      "type": "boolean",
+      "title": "GPT advisor",
+      "description": "Gives the model a gpt_advisor tool backed by OpenAI GPT through the Codex CLI.",
+      "default": false
+    },
+    "mode": {
+      "type": "string",
+      "title": "GPT advisor mode",
+      "description": "alongside: runs next to the native advisor. replace: the only advisor; warns while the native one is on.",
+      "default": "alongside",
+      "options": [
+        "alongside",
+        "replace"
+      ]
+    },
+    "model": {
+      "type": "string",
+      "title": "GPT advisor model",
+      "description": "The OpenAI model the gpt_advisor tool asks (effort max).",
+      "default": "gpt-6-astra",
+      "options": [
+        "gpt-6-astra",
+        "gpt-6.1-terra",
+        "gpt-6.1-sol"
+      ]
+    }
+  }
+}

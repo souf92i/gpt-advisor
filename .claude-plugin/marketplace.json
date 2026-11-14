@@ -1,0 +1,12 @@
+{
+  "name": "gpt-advisor",
+  "owner": {
+    "name": "souf92i"
+  },
+  "plugins": [
+    {
+      "name": "gpt-advisor",
+      "source": "./"
+    }
+  ]
+}
