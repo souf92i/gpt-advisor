@@ -15,6 +15,14 @@ const MAX_CHARS = 600_000
 const TIMEOUT_SECONDS = 20 * 60
 const SEP = '\n\n'
 const UNAVAILABLE = 'GPT advisor unavailable: '
+// A native advisor call made together with another tool call gets no result,
+// and the call is then removed from the history.
+const DROPPED = 'GPT advisor did not run: '
+const DROPPED_ADVICE = DROPPED +
+  'you called advisor and gpt_advisor together. An advisor call made together with another tool call gets no result, ' +
+  'so no native advice was received and that advisor call is no longer in your history. ' +
+  'Call advisor again now, with no other tool call. When its result is back, call gpt_advisor.'
+const DROPPED_ROW = 'The native advisor gave no result. Claude calls it again.'
 const REVIEWED = '✔ Advisor has reviewed the conversation and will apply the feedback'
 // The guidance rides on this engine section, so a reload can send it to the running thread.
 const ANCHOR_SECTION = 'env_info_simple'
@@ -34,7 +42,8 @@ const GUIDANCE = [
 
 // In alongside mode Claude otherwise prefers the native advisor and skips this one.
 const ALONGSIDE =
-  'The native advisor tool is also available. Each time you call advisor, call gpt_advisor right after it returns, as a separate call. Never call them in parallel.'
+  'The native advisor tool is also available. Call advisor with no other tool call and wait for its result: an advisor call made together with any other tool call gets no result. ' +
+  'Each time advisor returns, call gpt_advisor right after.'
 
 const DESCRIPTION =
   'Consult a stronger reviewer (OpenAI GPT) who sees your full conversation transcript. ' +
@@ -111,11 +120,22 @@ const fit = (head: string, messages: readonly string[]): string => {
   return [head, first, marker, ...kept].join(SEP)
 }
 
-const buildPrompt = async ($: EngineInterface, agentId: string | undefined): Promise<string> => {
+const readMessages = async ($: EngineInterface, agentId: string | undefined): Promise<readonly Message[]> => {
   const read = agentId === undefined
     ? await $.session.messages({ as: 'api' })
     : await $.session.messages({ as: 'api', agentId })
   if (!Array.isArray(read)) throw new Error(read.deny)
+  return read
+}
+
+// True when the message that made this call also holds a native advisor call with no result.
+const isNativeDropped = (messages: readonly Message[]): boolean => {
+  const blocks = messages.at(-1)?.content ?? []
+  const answered = blocks.filter(b => b.type === 'advisor_tool_result').map(b => b.tool_use_id)
+  return blocks.some(b => b.type === 'server_tool_use' && b.name === 'advisor' && !answered.includes(b.id))
+}
+
+const buildPrompt = async ($: EngineInterface, read: readonly Message[]): Promise<string> => {
   const tools = (await $.tool.list()).map(t => '- ' + t.name + ': ' + t.description).join('\n')
   const head = '# System prompt\n' + systemPrompt + SEP + '# Tools\n' + tools + SEP + '# Messages'
   const messages = read.map(renderMessage).filter(s => s !== '')
@@ -218,7 +238,9 @@ export const register: Register = (on, options) => {
         $.ui.invalidate('ui.render')
       })
       try {
-        const prompt = await buildPrompt($, e.agentId)
+        const messages = await readMessages($, e.agentId)
+        if (settings.mode === 'alongside' && isNativeDropped(messages)) return { result: DROPPED_ADVICE }
+        const prompt = await buildPrompt($, messages)
         return { result: await askCodex($, settings.model, prompt) }
       } catch (err) {
         return { result: UNAVAILABLE + mask(err instanceof Error ? err.message : String(err)) }
@@ -257,7 +279,8 @@ export const register: Register = (on, options) => {
     const { Text } = $.ui.resolve(e)
     const text = typeof e.props.output === 'string' ? e.props.output : ''
     const isFailed = e.props.isErrored || text.startsWith(UNAVAILABLE)
-    return <Text color={isFailed ? 'error' : 'inactive'}>{'  ⎿  ' + (isFailed ? text : REVIEWED)}</Text>
+    const line = isFailed ? text : text.startsWith(DROPPED) ? DROPPED_ROW : REVIEWED
+    return <Text color={isFailed ? 'error' : 'inactive'}>{'  ⎿  ' + line}</Text>
   })
 
   on('command.run', { command: 'gpt-advisor' }, async ($, e) => {

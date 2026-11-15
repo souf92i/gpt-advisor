@@ -1,6 +1,6 @@
 {
   "name": "gpt-advisor",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "An advisor tool backed by OpenAI GPT through the Codex CLI.",
   "author": {
     "name": "souf92i"

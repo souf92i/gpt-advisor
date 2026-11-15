@@ -230,3 +230,50 @@ test('the detailed transcript shows the advice itself', ON, async ($, on) => {
   expect((await ui.find({ type: 'Text', text: /engine/ }))?.text).toBe('engine')
   await ui.unmount()
 })
+
+// Block shapes as a live session gave them to the tool.call hook.
+const NATIVE_USE = { type: 'server_tool_use', id: 's1', name: 'advisor', input: {} }
+const GPT_USE = { type: 'tool_use', id: 't2', name: TOOL, input: {} }
+const withLast = (...content: Msg['content']): Msg[] => [...CHAT, { role: 'assistant', content }]
+
+test('a native advisor call dropped from the same step: Codex does not run, the result says to call advisor again', ON, async ($, on) => {
+  const spawned = world(on, withLast(NATIVE_USE, GPT_USE))
+  const ran = await $.tool.call({ tool: TOOL })
+  expect(spawned).toEqual([])
+  expect(String(ran.result)).toMatch(/^GPT advisor did not run: /)
+  expect(String(ran.result)).toContain('Call advisor again now, with no other tool call')
+})
+
+test('replace mode: a native advisor call without a result does not stop Codex', { options: { enabled: true, mode: 'replace' } }, async ($, on) => {
+  const spawned = world(on, withLast(NATIVE_USE, GPT_USE))
+  const ran = await $.tool.call({ tool: TOOL })
+  expect(spawned.length).toBe(1)
+  expect(ran.result).toBe('Check the tests first.')
+})
+
+test('a native advisor result before the call: Codex runs', ON, async ($, on) => {
+  const spawned = world(on, withLast(NATIVE_USE, { type: 'advisor_tool_result', tool_use_id: 's1', content: { type: 'advisor_redacted_result' } }, GPT_USE))
+  const ran = await $.tool.call({ tool: TOOL })
+  expect(spawned.length).toBe(1)
+  expect(ran.result).toBe('Check the tests first.')
+})
+
+test('a native advisor error before the call: Codex runs', ON, async ($, on) => {
+  const spawned = world(on, withLast(NATIVE_USE, { type: 'advisor_tool_result', tool_use_id: 's1', content: { type: 'advisor_tool_result_error', error_code: 'overloaded' } }, GPT_USE))
+  const ran = await $.tool.call({ tool: TOOL })
+  expect(spawned.length).toBe(1)
+  expect(ran.result).toBe('Check the tests first.')
+})
+
+test('the tool row shows a dropped native advisor call', ON, async ($) => {
+  const ui = await $.ui.mount({ plugin: 'gpt-advisor', surface: 'terminal', component: 'ToolResult', requestId: 't9', props: { tool_use_id: 't9', tool: TOOL, output: 'GPT advisor did not run: x', isErrored: false } })
+  expect((await ui.find({ type: 'Text', text: /native advisor/ }))?.text).toContain('The native advisor gave no result. Claude calls it again.')
+  await ui.unmount()
+})
+
+test('alongside: the guidance says why advisor must be alone in its step', ON, async ($, on) => {
+  startWorld(on, { value: 'fable' })
+  await $.session.start(START)
+  const section = await $.prompt.section({ name: 'env_info_simple', text: 'ENV' })
+  expect(section.text).toContain('gets no result')
+})
