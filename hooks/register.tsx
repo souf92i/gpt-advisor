@@ -1,16 +1,16 @@
 import type { EngineInterface, Register } from 'claude-code'
 
 const TOOL = 'mcp__gpt-advisor__gpt_advisor'
-const MODELS: readonly [string, ...string[]] = ['gpt-6-astra', 'gpt-6.1-terra', 'gpt-6.1-sol']
+const MODELS: readonly [string, ...string[]] = ['gpt-6.2-astra', 'gpt-6.1-terra', 'gpt-6.2-sol']
 const MODES: readonly [string, ...string[]] = ['alongside', 'replace']
 const NAMES: Readonly<Record<string, string>> = {
-  'gpt-6-astra': 'GPT 6 Astra',
+  'gpt-6.2-astra': 'GPT 6.2 Astra',
   'gpt-6.1-terra': 'GPT 6.1 Terra',
-  'gpt-6.1-sol': 'GPT 6.1 Sol',
+  'gpt-6.2-sol': 'GPT 6.2 Sol',
 }
-// The Codex model cache lists gpt-6-astra at 272k tokens and gpt-6.1-sol at
-// 500k (gpt-6.1-terra is not listed). 600k chars is about 170k tokens, which
-// fits astra's window with room for Codex's own prompt and max reasoning.
+// 600k chars is about 170k tokens. GPT 6 models had a window of 272k tokens or
+// more, which left room for Codex's own prompt and max reasoning. Codex does
+// not report the GPT 6.2 windows yet, so this cap is not verified for them.
 const MAX_CHARS = 600_000
 const TIMEOUT_SECONDS = 20 * 60
 const SEP = '\n\n'

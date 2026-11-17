@@ -54,7 +54,7 @@ test('renders the transcript, forwards the system prompt and masks secrets', ON,
   expect(ran.result).toBe('Check the tests first.')
 
   const call = spawned[0]
-  expect(call?.argv).toContain('gpt-6-astra')
+  expect(call?.argv).toContain('gpt-6.2-astra')
   expect(call?.argv).toContain('model_reasoning_effort=max')
   const prompt = call?.input ?? ''
   expect(prompt).toContain('You are the advisor to an AI coding agent')
@@ -118,10 +118,10 @@ test('a spawn that cannot start comes back as result text', ON, async ($, on) =>
   expect(String(ran.result)).toMatch(/^GPT advisor unavailable: /)
 })
 
-test('the model comes from userConfig', { options: { enabled: true, model: 'gpt-6.1-sol' } }, async ($, on) => {
+test('the model comes from userConfig', { options: { enabled: true, model: 'gpt-6.2-sol' } }, async ($, on) => {
   const spawned = world(on, CHAT)
   await $.tool.call({ tool: TOOL })
-  expect(spawned[0]?.argv).toContain('gpt-6.1-sol')
+  expect(spawned[0]?.argv).toContain('gpt-6.2-sol')
 })
 
 test('the command shows the values and sets them through /config', async ($, on) => {
@@ -132,14 +132,14 @@ test('the command shows the values and sets them through /config', async ($, on)
   const shown = await $.command.run({ command: 'gpt-advisor', args: '', ...RUN })
   expect(shown.text).toContain('Enabled: false')
   expect(shown.text).toContain('Mode: alongside')
-  expect(shown.text).toContain('Model: gpt-6-astra')
+  expect(shown.text).toContain('Model: gpt-6.2-astra')
 
-  const setModel = await $.command.run({ command: 'gpt-advisor', args: 'model gpt-6.1-sol', ...RUN })
-  expect(setModel.text).toContain('Model: gpt-6.1-sol')
+  const setModel = await $.command.run({ command: 'gpt-advisor', args: 'model gpt-6.2-sol', ...RUN })
+  expect(setModel.text).toContain('Model: gpt-6.2-sol')
   const setMode = await $.command.run({ command: 'gpt-advisor', args: 'mode replace', ...RUN })
   expect(setMode.text).toContain('Mode: replace')
   expect(sets).toEqual([
-    { key: 'gpt-advisor.model', value: 'gpt-6.1-sol' },
+    { key: 'gpt-advisor.model', value: 'gpt-6.2-sol' },
     { key: 'gpt-advisor.mode', value: 'replace' },
   ])
 

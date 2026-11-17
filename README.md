@@ -82,7 +82,7 @@ gpt-advisor is a plugin for Claude Code. The plugin gives Claude a `gpt_advisor`
    ```
    Enabled: true (turn on or off in /config)
    Mode: alongside (choices: alongside, replace)
-   Model: gpt-6-astra (choices: gpt-6-astra, gpt-6.1-terra, gpt-6.1-sol)
+   Model: gpt-6.2-astra (choices: gpt-6.2-astra, gpt-6.1-terra, gpt-6.2-sol)
    ```
 
 3. Make sure that the output shows `Enabled: true`, and the mode and the model that you set.
@@ -90,7 +90,7 @@ gpt-advisor is a plugin for Claude Code. The plugin gives Claude a `gpt_advisor`
 To do a full test (optional):
 
 1. Give Claude a small coding task.
-2. Look for the row "Advising using GPT 6 Astra". The row shows the name of the model that you set.
+2. Look for the row "Advising using GPT 6.2 Astra". The row shows the name of the model that you set.
 3. Press ctrl+o to read the advice.
 
 ## Settings
@@ -101,7 +101,7 @@ The plugin adds three settings to `/config`. A change takes effect from the next
 |-|-|-|-|
 | GPT advisor | `true`, `false` | `false` | Gives the `gpt_advisor` tool to Claude, or removes it. |
 | GPT advisor mode | `alongside`, `replace` | `alongside` | `alongside`: Claude can use the native advisor and the GPT advisor. If the native advisor is on, Claude calls it first, then the GPT advisor. `replace`: the GPT advisor is the only advisor. The plugin shows a warning while the native advisor is on. |
-| GPT advisor model | `gpt-6-astra`, `gpt-6.1-terra`, `gpt-6.1-sol` | `gpt-6-astra` | The GPT model that gives the advice. The reasoning effort is always `max`. |
+| GPT advisor model | `gpt-6.2-astra`, `gpt-6.1-terra`, `gpt-6.2-sol` | `gpt-6.2-astra` | The GPT model that gives the advice. The reasoning effort is always `max`. |
 
 You can also read and change the settings with the `/gpt-advisor` command:
 

@@ -1,6 +1,6 @@
 {
   "name": "gpt-advisor",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "An advisor tool backed by OpenAI GPT through the Codex CLI.",
   "author": {
     "name": "souf92i"
@@ -27,11 +27,11 @@
       "type": "string",
       "title": "GPT advisor model",
       "description": "The OpenAI model the gpt_advisor tool asks (effort max).",
-      "default": "gpt-6-astra",
+      "default": "gpt-6.2-astra",
       "options": [
-        "gpt-6-astra",
+        "gpt-6.2-astra",
         "gpt-6.1-terra",
-        "gpt-6.1-sol"
+        "gpt-6.2-sol"
       ]
     }
   }
